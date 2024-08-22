@@ -81,9 +81,9 @@ class VS2M(object):
         self.image_net = []
         self.parameters = []
         for i in range(self.rank):
-            net = skip(self.input_depth, self.output_depth,  num_channels_down = [4, 8, 16, 16],
-                           num_channels_up = [4, 8, 16, 16],
-                           num_channels_skip = [0, 0, 4, 4],
+            net = skip(self.input_depth, self.output_depth,  num_channels_down = [4, 8, 16, 32],
+                           num_channels_up = [4, 8, 16, 32],
+                           num_channels_skip = [0, 0, 2, 2],
                            filter_size_down = [5, 5, 3, 3], filter_size_up = [5, 5, 3, 3],
                            upsample_mode='trilinear', downsample_mode='avg',
                            need_sigmoid=False, pad=pad, act_fun='LeakyReLU').type(data_type)

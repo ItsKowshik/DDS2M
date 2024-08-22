@@ -35,7 +35,7 @@ model:
     resamp_with_conv: True
 
 diffusion:
-    beta_schedule: linear 
+    beta_schedule: quad 
     beta_start: 0.0001
     beta_end: 0.005
     num_diffusion_timesteps: 2000

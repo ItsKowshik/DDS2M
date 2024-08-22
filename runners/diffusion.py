@@ -124,8 +124,8 @@ class Diffusion(object):
 
         # x_test = (x_test-np.min(x_test))/(np.max(x_test)-np.min(x_test))
         # y_test = (y_test-np.min(y_test))/(np.max(y_test)-np.min(y_test))
-        mask_1 = np.tile(np.expand_dims(observed_mask, -1), (x_test.shape[0], 1, 1, 1, 1))
-        mask_2 = np.tile(np.expand_dims(missing_mask, -1), (x_test.shape[0], 1, 1, 1, 1))
+        mask_1 = np.float32(np.tile(np.expand_dims(observed_mask, -1), (x_test.shape[0], 1, 1, 1, 1)))
+        mask_2 = np.float32(np.tile(np.expand_dims(missing_mask, -1), (x_test.shape[0], 1, 1, 1, 1)))
 
         # dataset = TensorDataset(torch.tensor(x_test, dtype=torch.float32), 
         #                         torch.tensor(y_test, dtype=torch.float32), 
@@ -145,7 +145,7 @@ class Diffusion(object):
                 np.ones((self.config.data.image_size, self.config.data.image_size, self.config.data.image_size, self.config.data.channels)), 
                 self.args.beta, self.config.model.iter_number, self.config.model.lr
             )
-            result = self.sample_sequence(model, image, config, logger, image_folder=image_folder)
+            result = self.sample_sequence(model, image, config, logger, image_folder=image_folder,mask=mask_1[i])
             x_test_recon[i] = (result['x_recon'] * img_range) + img_min
             all_results.append(result)
         
@@ -158,7 +158,7 @@ class Diffusion(object):
                 pickle.dump(all_results, f)
                 f.close()
 
-    def sample_sequence(self, model, image, config=None, logger=None, image_folder=None):
+    def sample_sequence(self, model, image, config=None, logger=None, image_folder=None,mask=None):
         """
         Start sampling a single image
 
@@ -192,7 +192,7 @@ class Diffusion(object):
         ## in this operation, the known pixels remain unchanged, and the unknown pixels are filled with 0, which is essentially a rearrangement process for completion
         pinv_y_0 = H_funcs.H_pinv(y_0).view(y_0.shape[0], config.data.channels, self.config.data.image_size, self.config.data.image_size, self.config.data.image_size) 
         ## processing the unknown pixel value for completion
-        if deg == 'completion':
+        if mask is not None:
             pinv_y_0 += H_funcs.H_pinv(H_funcs.H(torch.ones_like(pinv_y_0))).reshape(*pinv_y_0.shape) - 1
 
         pinv_y_0 = inverse_data_transform(config, pinv_y_0[0,:,:,:,:]).detach().permute(1,2,3,0).cpu().numpy()
